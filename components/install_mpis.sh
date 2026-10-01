@@ -9,6 +9,19 @@ set GCC=/usr/bin/gcc
 
 INSTALL_PREFIX=/opt
 
+function resolve_pmix_pkgconfig_dir {
+    local candidate
+    for candidate in "$@"; do
+        if [[ -f "${candidate}/pmix.pc" ]]; then
+            echo "${candidate}"
+            return 0
+        fi
+    done
+
+    echo "Unable to locate pmix.pc in HPC-X package paths: $*" >&2
+    return 1
+}
+
 # Setup module files for MPIs
 MPI_MODULE_FILES_DIRECTORY=${MODULE_FILES_DIRECTORY}/mpi
 mkdir -p ${MPI_MODULE_FILES_DIRECTORY}
@@ -125,11 +138,14 @@ fi
 
 if [[ "$USE_INTERNAL_PMIX" == true ]]; then
     # Report the PMIx actually shipped: the rebuild installs its internal copy, otherwise the
-    # vendor ompi5 tree is used as-is.
+    # vendor Open MPI tree is used as-is. HPC-X 2.24 uses ompi while newer releases use ompi5.
     if [[ "$REBUILD_HPCX" == true ]]; then
-        HPCX_PMIX_PKG_CONFIG_PATH=${HPCX_PATH}/hpcx-rebuild/lib/pkgconfig
+        HPCX_PMIX_PKG_CONFIG_PATH=$(resolve_pmix_pkgconfig_dir \
+            "${HPCX_PATH}/hpcx-rebuild/lib/pkgconfig")
     else
-        HPCX_PMIX_PKG_CONFIG_PATH=${HPCX_PATH}/ompi5/lib/pkgconfig
+        HPCX_PMIX_PKG_CONFIG_PATH=$(resolve_pmix_pkgconfig_dir \
+            "${HPCX_PATH}/ompi/lib/pkgconfig" \
+            "${HPCX_PATH}/ompi5/lib/pkgconfig")
     fi
     PMIX_VERSION=$(PKG_CONFIG_PATH=${HPCX_PMIX_PKG_CONFIG_PATH} pkg-config --modversion pmix)
     write_component_version "PMIX" "${PMIX_VERSION}"

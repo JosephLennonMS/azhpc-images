@@ -144,8 +144,8 @@ if [[ "$USE_INTERNAL_PMIX" == true ]]; then
             "${HPCX_PATH}/hpcx-rebuild/lib/pkgconfig")
     else
         HPCX_PMIX_PKG_CONFIG_PATH=$(resolve_pmix_pkgconfig_dir \
-            "${HPCX_PATH}/ompi/lib/pkgconfig" \
-            "${HPCX_PATH}/ompi5/lib/pkgconfig")
+            "${HPCX_PATH}/ompi5/lib/pkgconfig" \
+            "${HPCX_PATH}/ompi/lib/pkgconfig")
     fi
     PMIX_VERSION=$(PKG_CONFIG_PATH=${HPCX_PMIX_PKG_CONFIG_PATH} pkg-config --modversion pmix)
     write_component_version "PMIX" "${PMIX_VERSION}"
